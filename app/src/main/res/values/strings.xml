@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">HW4-Q3</string>
+    <string name="flashlight">Flashlight</string>
+    <string name="hint">Type Action Here</string>
 </resources>
