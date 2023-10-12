@@ -5,6 +5,7 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.TextWatcher
 import android.widget.EditText
 import android.widget.Switch
 import com.example.hw4_q3.R
@@ -14,7 +15,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cameraManager: CameraManager
     private var cameraId: String? = null
     private lateinit var flashlightSwitch: Switch
-    private var actionEditText: EditText? = null
+    private lateinit var actionEditText: EditText
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -22,6 +23,7 @@ class MainActivity : AppCompatActivity() {
         cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
         flashlightSwitch = findViewById(R.id.flashlightSwitch)
         actionEditText = findViewById(R.id.editText)
+        actionEditText.setText("")
 
         try {
             val cameraIds = cameraManager.cameraIdList
@@ -44,6 +46,18 @@ class MainActivity : AppCompatActivity() {
             } else {
                 turnOffFlashlight()
             }
+        }
+
+        actionEditText.setOnEditorActionListener { _, _, _ ->
+            val action = actionEditText.text.toString().trim()
+            if (action.equals("ON", ignoreCase = true)) {
+                turnOnFlashlight()
+                flashlightSwitch.isChecked = true
+            } else if (action.equals("OFF", ignoreCase = true)) {
+                turnOffFlashlight()
+                flashlightSwitch.isChecked = false
+            }
+            true
         }
     }
 
