@@ -1,5 +1,9 @@
 package com.example.hw4_q3
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
@@ -10,12 +14,14 @@ import android.widget.EditText
 import android.widget.Switch
 import com.example.hw4_q3.R
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private lateinit var cameraManager: CameraManager
     private var cameraId: String? = null
     private lateinit var flashlightSwitch: Switch
     private lateinit var actionEditText: EditText
+    private lateinit var sensorManager: SensorManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -40,6 +46,8 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
 
+        setUpSensors()
+
         flashlightSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 turnOnFlashlight()
@@ -61,6 +69,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setUpSensors() {
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+
+        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
+            sensorManager.registerListener(
+                this,
+                accelerometer,
+                SensorManager.SENSOR_DELAY_FASTEST,
+                SensorManager.SENSOR_DELAY_FASTEST
+            )
+        }
+    }
+
     private fun turnOnFlashlight() {
         try {
             if (cameraId != null) {
@@ -79,5 +100,29 @@ class MainActivity : AppCompatActivity() {
         } catch (e: CameraAccessException) {
             e.printStackTrace()
         }
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+            val movement = event.values[1]
+            val flingThreshold = 10
+
+            if (movement > flingThreshold) {
+                turnOnFlashlight()
+                flashlightSwitch.isChecked = true
+            } else if (movement < -flingThreshold) {
+                turnOffFlashlight()
+                flashlightSwitch.isChecked = false
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+        return
+    }
+
+    override fun onDestroy() {
+        sensorManager.unregisterListener(this)
+        super.onDestroy()
     }
 }
